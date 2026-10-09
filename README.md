@@ -1,34 +1,57 @@
 # Multi-Region Active-Passive Failover
 
-An interactive, responsive architecture explainer for a proposed AWS
-multi-region active-passive failover design.
+An interactive explainer for a proposed resilient AWS web architecture. Explore
+how CloudFront, Route 53, regional origins, and health checks could work together
+to route traffic from a primary region to a standby region.
 
-## Live site
+> **Live demo:** [d2quyljtx3dqoe.cloudfront.net](https://d2quyljtx3dqoe.cloudfront.net/)
 
-https://d2quyljtx3dqoe.cloudfront.net/
+## What you'll find
 
-## Current deployment scope
+- A responsive, interactive architecture diagram.
+- Scenario controls that illustrate the documented request paths during normal
+  operation and a simulated failover.
+- An explanation of the AWS components and the role each would play.
+- Terraform configuration for hosting this static explainer with a private S3
+  bucket and CloudFront.
 
-The live deployment is a static website: `index.html` is stored in a private S3
-bucket and served through CloudFront. The scenario controls illustrate the
-documented request paths; they do not trigger or verify real failover.
+## Architecture scope
 
-The live AWS account does **not** currently have the primary-region application,
-secondary-region maintenance origin, CloudFront origin group, Route 53 failover
-records, health checks, or CloudWatch/SNS alerting described by the explainer.
-Real DNS failover also requires a domain. See
-[`terraform/README.md`](./terraform/README.md) for the included static-site
-Terraform configuration and deployment instructions.
+The scenario controls are an educational visualization. They do **not** trigger
+or verify a real failover.
 
-## Files
+The live AWS deployment hosts only this static website. It does not include the
+primary-region application, secondary-region maintenance origin, CloudFront
+origin group, Route 53 failover records, health checks, or CloudWatch/SNS
+alerting shown in the explainer. Real DNS failover also requires a domain.
 
-- `index.html` — standalone webpage; no build step or external frontend
-  dependencies.
-- `terraform/` — Terraform configuration for a private S3 bucket and CloudFront
-  distribution. This provisions the static site only, not the full multi-region
-  failover architecture.
+## Run locally
+
+No build step or frontend dependencies are required. Open `index.html` directly
+in a browser, or serve the repository with any static web server.
+
+## Deploy the explainer to AWS
+
+The Terraform in [`terraform/`](./terraform/) provisions the static website only:
+a private S3 bucket, CloudFront distribution, and Origin Access Control.
+
+Requirements:
+
+- Terraform 1.5 or newer
+- AWS CLI credentials with permission to create the resources above
+
+Review the deployment steps, permissions, and cost considerations in the
+[Terraform README](./terraform/README.md) before applying. AWS resources incur
+charges while deployed.
+
+## Repository layout
+
+| Path | Description |
+| --- | --- |
+| [`index.html`](./index.html) | Standalone interactive website |
+| [`terraform/`](./terraform/) | Terraform for static-site hosting on AWS |
 
 ## License
 
-No license has been specified. All rights reserved unless the repository owner
-adds a license.
+No license has been specified. All rights are reserved unless the repository
+owner adds a license.
