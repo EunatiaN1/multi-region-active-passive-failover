@@ -1,0 +1,14 @@
+# Example terraform.tfvars for terraform/secondary-region
+# Copy this file to terraform.tfvars and edit values before running `terraform apply`.
+
+project_name = "active-passive-web"
+primary_region = "us-east-1"
+secondary_region = "eu-north-1"
+vpc_cidr = "10.1.0.0/16"
+instance_type = "t3.micro"
+min_size = 2
+desired_capacity = 2
+max_size = 6
+target_cpu_utilization = 50
+# Optional: an email address to receive SNS alerts (must confirm subscription)
+alert_email = ""

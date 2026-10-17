@@ -40,6 +40,29 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "site" {
   }
 }
 
+resource "aws_s3_bucket_versioning" "site" {
+  bucket = aws_s3_bucket.site.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "site" {
+  bucket = aws_s3_bucket.site.id
+
+  rule {
+    id     = "expire-old-versions"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+}
+
 resource "aws_cloudfront_origin_access_control" "site" {
   name                              = "active-passive-webpage-oac"
   description                       = "Private S3 access for the active-passive architecture page"
@@ -66,9 +89,7 @@ resource "aws_cloudfront_distribution" "site" {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
     compress               = true
-    min_ttl                = 0
-    default_ttl            = 300
-    max_ttl                = 3600
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
   }
 
   restrictions {

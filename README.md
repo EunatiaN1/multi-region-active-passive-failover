@@ -20,10 +20,18 @@ to route traffic from a primary region to a standby region.
 The scenario controls are an educational visualization. They do **not** trigger
 or verify a real failover.
 
-The live AWS deployment hosts only this static website. It does not include the
-primary-region application, secondary-region maintenance origin, CloudFront
-origin group, Route 53 failover records, health checks, or CloudWatch/SNS
-alerting shown in the explainer. Real DNS failover also requires a domain.
+The existing live AWS deployment hosts only this static website. It does not
+include the primary-region application, secondary-region maintenance origin,
+CloudFront origin group, Route 53 failover records, health checks, or
+CloudWatch/SNS alerting shown in the explainer. A separate Terraform
+configuration is available in [`terraform/full-architecture/`](./terraform/full-architecture/).
+The deployable variant uses CloudFront origin failover and an AWS-generated
+hostname; it does not implement Route 53 DNS failover. Its resources are
+billable, and the S3 website endpoint is directly reachable over HTTP.
+The full-architecture root includes plan-only Terraform tests with a mocked
+AWS provider. These test selected configuration properties without AWS
+credentials or creating resources; they do not replace deployment or runtime
+failover testing.
 
 ## Run locally
 
@@ -35,7 +43,7 @@ in a browser, or serve the repository with any static web server.
 The Terraform in [`terraform/`](./terraform/) provisions the static website only:
 a private S3 bucket, CloudFront distribution, and Origin Access Control.
 
-Requirements:
+Requirements for the static-site Terraform root:
 
 - Terraform 1.5 or newer
 - AWS CLI credentials with permission to create the resources above
@@ -44,12 +52,19 @@ Review the deployment steps, permissions, and cost considerations in the
 [Terraform README](./terraform/README.md) before applying. AWS resources incur
 charges while deployed.
 
+The separate [full-architecture root](./terraform/full-architecture/) requires
+Terraform 1.6 or newer and includes three mocked, plan-only Terraform tests.
+They validate selected configuration properties without AWS credentials or
+creating resources; they do not replace an AWS plan, deployment, or runtime
+failover tests.
+
 ## Repository layout
 
 | Path | Description |
 | --- | --- |
 | [`index.html`](./index.html) | Standalone interactive website |
-| [`terraform/`](./terraform/) | Terraform for static-site hosting on AWS |
+| [`terraform/`](./terraform/) | Terraform for static-site hosting and the separate full architecture |
+| [`Portfolio/`](./Portfolio/) | Written deliverables for the three assignment phases |
 
 ## License
 
