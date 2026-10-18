@@ -1,82 +1,61 @@
 # Portfolio Part 1 – Conception Phase
 
-## Project idea
+## Project idea and audience
 
-This project presents an interactive webpage about hosting a simple website on
-AWS and explains how an active-passive design can improve availability during
-an outage. The intended audience is a learner or reviewer who needs to
-understand the roles of the main AWS components and follow the request path
-without first deploying a full production application.
+This project explains how AWS can host a simple webpage and how an
+active-passive design could respond to a regional application failure. It is
+intended for a learner or reviewer who needs to understand the request path
+and the role of each cloud component without first deploying a production
+system. The deliverables are a responsive interactive explainer, a
+conceptual architecture diagram, and Terraform source.
 
-The central idea is to separate the website used for the demonstration from the
-larger failover architecture it explains. The demonstration website is a static
-site stored in Amazon S3 and delivered over HTTPS through Amazon CloudFront. The
-page then visualises a more resilient application design in which a primary
-region serves normal traffic and a passive region is available as a fallback.
-Amazon Route 53 and CloudFront are described as independent failover layers:
-Route 53 can respond to regional health-check results, while CloudFront can
-switch origins for configured origin-failure responses.
+## Proposed architecture and rationale
 
-## Proposed architecture
+The actual demonstration website is a static page stored in Amazon S3 and
+delivered through Amazon CloudFront. CloudFront uses Origin Access Control
+(OAC) to read a private S3 bucket, so visitors do not need direct bucket
+access. HTTPS is enforced at the viewer edge. Terraform describes these
+resources to make the hosting setup reviewable and repeatable.
 
-In the hosting implementation, a private S3 bucket stores the static page.
-CloudFront uses Origin Access Control to retrieve the object, so the bucket
-does not need public access. Visitors use the CloudFront HTTPS endpoint rather
-than accessing S3 directly. Terraform defines the hosting resources so they can
-be reviewed and provisioned consistently.
+Separately, the explainer presents a proposed active-passive application
+design. During normal operation, CloudFront forwards requests to an
+Application Load Balancer (ALB) in a primary AWS region. The ALB distributes
+traffic to EC2 instances across two Availability Zones, and an Auto Scaling
+group adjusts compute capacity to demand. A secondary region holds a
+maintenance response. CloudFront origin-group failover can select that
+response for configured primary-origin failures. Route 53 health checks and
+failover records are a separate proposed DNS layer; they do not share the
+same trigger or behavior as CloudFront origin failover.
 
-The architecture explainer depicts the intended active-passive application
-pattern separately. During normal operation, requests use the primary
-application region. If the primary application origin returns configured
-failure responses, CloudFront origin failover can direct eligible requests to
-a standby origin. If the primary region is unhealthy, Route 53 health checks
-and failover routing can direct DNS responses to the standby endpoint. The
-standby is passive during normal operation, which avoids maintaining a second
-active application fleet.
+The component choices separate global entry and caching (CloudFront),
+private object storage (S3), regional traffic distribution (ALB), and
+elastic compute (EC2 Auto Scaling). A static standby lowers idle compute
+cost, but it is not a warm replacement application and cannot serve
+stateful user workloads.
 
 ## Objectives and success criteria
 
-The project aims to:
-
-1. Explain an AWS hosting and failover design in clear, visual form.
-2. Provide a responsive webpage that can be viewed on desktop and mobile
-   screens.
-3. Use Terraform for the static-site hosting infrastructure.
-4. Keep the S3 origin private and serve the website through HTTPS.
-5. State clearly which architecture components are illustrative and which are
-   actually provisioned.
-
-The design is successful if a reader can follow the normal and failure request
-paths, identify the purpose of S3, CloudFront, and Route 53, and distinguish the
-educational failover simulation from real AWS failover behavior.
+The design aims to explain the normal and failure request paths, provide a
+responsive webpage, host the real explainer privately behind HTTPS, and
+distinguish implemented resources from proposed behavior. A reader should
+be able to identify the purpose of S3, CloudFront, Route 53, ALB, and EC2,
+and understand which mechanisms are active in each scenario.
 
 ## Scope, assumptions, and constraints
 
-The deployed scope is the static explainer website: one private S3 bucket, a
-CloudFront distribution, an Origin Access Control, and the access policy needed
-for CloudFront to read the page. The project does not provision a production
-application, a second application region, Route 53 records, public health
-checks, monitoring, or notification services. Real DNS failover requires a
-domain and additional resources, permissions, testing, and operating cost.
+The live deployment is limited to the static explainer's private S3 bucket,
+CloudFront distribution, OAC, and access policy. The browser scenario
+controls are visual simulations; they do not call AWS or cause failover.
+The separate multi-region Terraform root is a prototype for CloudFront
+origin failover. It does not configure Route 53 records, public health
+checks, a custom domain, or a custom HTTPS certificate. DNS failover would
+require a controlled domain and hosted zone, reachable health-check targets,
+compatible HTTPS on both targets, additional permissions, cost review, and
+runtime testing. The secondary S3 website endpoint is public for its
+maintenance object and HTTP-only; it must contain no sensitive information.
 
-The architecture diagram is therefore a teaching aid, not a live control
-plane. This boundary keeps the assignment implementation manageable while
-avoiding a misleading claim that clicking a scenario button changes AWS
-resources. AWS charges, CloudFront propagation time, and the need for suitable
-AWS credentials are also considered when planning deployment.
-
-## Implementation status and design caveat
-
-The existing live deployment remains the static explainer. A separate
-Terraform configuration is available under
-[`terraform/full-architecture/`](../../terraform/full-architecture/) for a
-deployable variant with the VPC, load balancer, Auto Scaling group, CloudFront
-origin group, secondary S3 maintenance website, and monitoring. To allow use
-of CloudFront's generated hostname without a custom domain, this variant omits
-the Route 53 DNS failover shown in the proposed design. The S3 website origin
-supports HTTP only but CloudFront serves the maintenance response over HTTPS;
-the website endpoint itself is public and must contain no sensitive
-information.
-
-The availability percentage is a design goal, not an AWS service guarantee
-or a measured result.
+Availability and low latency are design objectives, not measured results or
+AWS service guarantees. CloudFront propagation, regional quotas, account
+permissions, service charges, DNS caching, and the gap between conceptual
+design and deployed resources are explicit project constraints. The
+accompanying diagram is conceptual, not a deployed-resource inventory.

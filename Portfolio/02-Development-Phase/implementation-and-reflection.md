@@ -36,12 +36,21 @@ to support recovery from accidental updates without retaining old versions
 indefinitely. CloudFront caching was aligned with the AWS-managed
 CachingOptimized policy.
 
-The submitted Phase 2 presentation reports that 38 resources were applied and
-that several failover and scaling tests passed. The present repository did not
-contain the corresponding full-architecture Terraform source, Terraform state,
-or test logs. Those results are therefore reported as stated in the original
-submission but have not been independently reproduced against the newly added
-configuration.
+The separate full-architecture stack provisions a primary-region VPC, an
+Application Load Balancer across two Availability Zones, an EC2 Auto Scaling
+group, CloudFront origin failover, a secondary-region S3 maintenance page, and
+CloudWatch/SNS alerting. The sample application serves requests concurrently,
+returns 404 for unknown paths, and runs as a dedicated unprivileged systemd
+user with a restricted capability set and filesystem protections. The launch
+template requires IMDSv2. Terraform validates project naming, distinct
+primary and secondary regions, VPC CIDR sizing, Auto Scaling capacity order,
+and the CPU target.
+
+The original Phase 2 presentation reports that 38 resources were applied and
+that several failover and scaling tests passed. The present repository does
+not contain the corresponding Terraform source, state, or test logs. These
+historical results have not been independently reproduced and do not validate
+the separate full-architecture configuration described here.
 
 For a future deployment, authenticate with an authorized profile, initialize
 Terraform, inspect the plan, and apply only after checking the resources and
@@ -60,20 +69,27 @@ was to keep the S3 bucket private rather than enabling public website hosting.
 This reduces direct exposure of the origin and demonstrates how CloudFront
 Origin Access Control can be used for a static site.
 
-The most important limitation is that the newly added full-architecture code
-has not been applied or runtime-tested in AWS. The deployed website still
-hosts the static explainer, and its scenario controls remain browser-side
-illustrations. Three mocked, plan-only Terraform tests now verify selected
-configuration properties, including capacity defaults, health checks,
-IMDSv2, origin-failover response codes, maintenance-bucket access settings,
-alarm wiring, optional email configuration, and CPU-target validation. They
-run without AWS credentials and create no resources, but cannot establish
-that the stack deploys or behaves as intended in AWS. The selectable
-CloudFront-only variant does not provide Route 53 DNS failover; that
-capability requires a custom domain and additional configuration.
+The most important limitation is that the full-architecture code has not been
+applied or runtime-tested in AWS. The deployed website still hosts only the
+static explainer, and its scenario controls remain browser-side illustrations.
+The project history records Terraform 1.12.2 formatting and provider-schema
+validation as passing, along with eight mocked, plan-only Terraform test runs.
+Those tests check capacity defaults and invalid capacity order, network access
+boundaries, health checks, IMDSv2, CloudFront failover responses,
+maintenance-bucket access settings, alarm wiring, optional email
+configuration, project-name and regional validation, and VPC subnet sizing.
+They run without AWS credentials and create no resources, but cannot establish
+that the stack deploys or behaves as intended in AWS. Terraform was not
+available in the environment used to regenerate this submission, so the
+recorded checks were not rerun during this revision. The Terraform variant
+also omits Route 53 DNS failover; see the final report for the required
+design decisions and evidence before adding that layer.
 
-Overall, the project includes both the existing small static-site deployment
-and a separate multi-region Terraform implementation with CloudFront origin
-failover. Feedback from a tutor or reviewer should be
-incorporated in the final submitted version; this reflection does not assume
-that new AWS deployment or runtime tests have been performed.
+Overall, the project includes the existing static-site deployment and a
+separate multi-region Terraform implementation with CloudFront origin failover.
+The configuration and mocked-plan coverage are useful development evidence,
+not proof of an operational recovery service. An authorized AWS deployment,
+controlled failover and recovery tests, and evidence capture remain required.
+Feedback from a tutor or reviewer should be incorporated before final upload;
+this reflection does not claim that new AWS deployment or runtime tests have
+been performed.

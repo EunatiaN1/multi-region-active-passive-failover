@@ -1,0 +1,10 @@
+.DS_Store
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+terraform.tfvars
+terraform.tfvars.json
+aws-webpage-deployment.zip
