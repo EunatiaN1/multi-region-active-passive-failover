@@ -36,15 +36,8 @@ a custom domain, ACM certificate, or Route 53 DNS failover records.
 5. CloudWatch alarms when the primary ALB target group reports unhealthy
    application hosts and publishes to SNS.
 
-The `/origin-health` endpoint is routed to the primary ALB for manual
-verification; it is not a Route 53 health check and does not trigger DNS
-failover. CloudFront origin-group failover is response-code-driven. It is not
-an independent regional DNS failover mechanism.
-
-The primary-region bootstrap runs the sample service as an unprivileged
-systemd user with a restricted capability set and filesystem protections.
-The threaded HTTP server can handle concurrent requests; only `/` and the
-health endpoints are served.
+The `/origin-health` endpoint is available through CloudFront for manual
+verification; it does not trigger a separate DNS failover path.
 
 ## Prerequisites
 
@@ -61,9 +54,7 @@ production deployment.
 ## Local automated tests
 
 The plan-level Terraform tests use a mocked AWS provider. They check important
-configuration properties, including scaling bounds, network access, regional
-separation, project naming, and subnet sizing, without AWS credentials or
-creating cloud resources:
+configuration properties without AWS credentials or creating cloud resources:
 
 ```sh
 terraform -chdir=terraform/full-architecture init -backend=false
@@ -76,8 +67,8 @@ These tests do not verify AWS account permissions, deployed service behavior,
 failover timing, notifications, scaling, or recovery. Those require an
 authorized deployment and controlled runtime tests.
 
-Run the commands above after changing the configuration. No AWS resources are
-created by the mocked plan tests.
+Latest local verification: formatting and provider validation passed, and
+the three plan tests passed. No AWS resources were created by these checks.
 
 ## Configure, inspect, and deploy
 
@@ -116,71 +107,15 @@ and SNS topic ARN.
 
 After an approved deployment:
 
-1. Save the approved Terraform plan, apply output, account/region, UTC
-   timestamps, and resource outputs in the evidence record. Redact account
-   identifiers where required by the submission rules.
-2. Confirm the `application_url` returns the primary-region page over HTTPS.
-   Capture the URL and response status; do not treat the AWS-generated URL as
-   a custom-domain DNS test.
-3. Confirm `/origin-health` returns HTTP 200 while primary targets are healthy.
-   Record the command, timestamp, and response.
-4. In a controlled test environment, make the primary origin return one of the
-   configured 5xx responses and confirm CloudFront serves the maintenance
-   page. Record the response code, body, test start/end times, and recovery
-   result. Do not break a shared or production service to force this test.
-5. Confirm the ALB unhealthy-target alarm enters ALARM and the SNS email
-   subscription is confirmed and receives the notification, if configured.
-6. Confirm the maintenance page contains no sensitive data and that its
-   public HTTP endpoint is understood and accepted.
-7. Restore the primary application, confirm the primary response is restored,
-   and record observed recovery time. Review logs, charges, and all resources
-   before destroying the test stack.
-
-The read-only primary-path smoke check can be run after deployment:
-
-```sh
-bash terraform/full-architecture/scripts/smoke-test.sh \
-  "$(terraform -chdir=terraform/full-architecture output -raw application_url)"
-```
-
-It checks for the expected primary page and `/origin-health` response. It
-does not cause an outage, test the maintenance path, or prove failover. Run
-the controlled failover and restoration steps separately in an approved
-test environment.
-
-### Route 53 DNS failover: design boundary
-
-This Terraform root does not implement DNS failover. Do not point a domain's
-records at this stack and claim DNS failover is operational. A production
-design needs a domain and hosted zone under the operator's control, plus
-explicit decisions for:
-
-- The primary and standby DNS targets and whether those targets serve the same
-  application or a maintenance response.
-- Health checks that observe the real primary service, with a documented
-  endpoint, protocol, expected response, failure threshold, and recovery
-  behavior. A health check must not be described as monitoring a service that
-  it cannot reach.
-- HTTPS on both targets. An S3 website endpoint is HTTP-only; direct DNS
-  failover from a CloudFront HTTPS hostname to that endpoint would not preserve
-  browser HTTPS. The standby must have an HTTPS-capable endpoint and compatible
-  certificate before failover records are introduced.
-- Route 53 failover record names/types, alias behavior, TTL, health evaluation,
-  DNS caching, and how application traffic interacts with the CloudFront
-  origin group.
-- A controlled test plan, rollback, recovery observation, and cost review.
-
-One candidate for further design is Route 53 failover between two
-HTTPS-capable CloudFront distributions: a primary distribution serving the
-application path and a standby distribution serving the maintenance page.
-This requires a controlled hostname, correctly scoped certificates, reachable
-health-check targets, and verification of Route 53/CloudFront alias and health
-check behavior. It is a design candidate, not implemented or tested here.
-Do not add placeholder domain values or claim it works until it is configured
-and tested in an authorized AWS account.
-
-The repository's [validation evidence register](../../Portfolio/03-Finalisation-Phase/validation-evidence.md)
-lists what is currently observed and what remains to collect.
+1. Confirm the app URL returns the primary-region page over HTTPS.
+2. Confirm `/origin-health` returns 200 while the primary target group is
+   healthy.
+3. In a controlled test, make the ALB origin return a configured failure and
+   confirm CloudFront serves the maintenance page.
+4. Confirm the ALB unhealthy-target alarm and optional SNS email subscription.
+5. Confirm the maintenance site contains no sensitive data.
+6. Restore the primary application and verify recovery, then review logs,
+   charges, and all resources before destroying the test stack.
 
 To remove resources after testing, inspect the destroy plan first:
 

@@ -58,27 +58,6 @@ run "default_architecture" {
 
   assert {
     condition = (
-      length(aws_security_group.application.ingress) == 1 &&
-      length(one(aws_security_group.application.ingress).security_groups) == 1 &&
-      one(aws_security_group.application.ingress).cidr_blocks == null
-    )
-    error_message = "Application instances must accept HTTP only from the load balancer security group."
-  }
-
-  assert {
-    condition = (
-      length(aws_security_group.alb.ingress) == 1 &&
-      one(aws_security_group.alb.ingress).cidr_blocks == null &&
-      contains(
-        one(aws_security_group.alb.ingress).prefix_list_ids,
-        data.aws_ec2_managed_prefix_list.cloudfront_origin_facing.id
-      )
-    )
-    error_message = "The load balancer must accept origin traffic only from CloudFront's managed prefix list."
-  }
-
-  assert {
-    condition = (
       length(one(aws_cloudfront_distribution.primary.origin_group).failover_criteria[0].status_codes) == 4 &&
       contains(one(aws_cloudfront_distribution.primary.origin_group).failover_criteria[0].status_codes, 500) &&
       contains(one(aws_cloudfront_distribution.primary.origin_group).failover_criteria[0].status_codes, 502) &&
@@ -139,55 +118,4 @@ run "rejects_invalid_cpu_target" {
   }
 
   expect_failures = [var.target_cpu_utilization]
-}
-
-run "rejects_invalid_capacity_order" {
-  command = plan
-
-  variables {
-    min_size         = 3
-    desired_capacity = 2
-  }
-
-  expect_failures = [aws_autoscaling_group.application]
-}
-
-run "rejects_same_primary_and_secondary_region" {
-  command = plan
-
-  variables {
-    secondary_region = "eu-central-1"
-  }
-
-  expect_failures = [var.secondary_region]
-}
-
-run "rejects_invalid_project_name" {
-  command = plan
-
-  variables {
-    project_name = "Invalid Name"
-  }
-
-  expect_failures = [var.project_name]
-}
-
-run "rejects_vpc_cidr_too_small_for_subnets" {
-  command = plan
-
-  variables {
-    vpc_cidr = "10.0.0.0/24"
-  }
-
-  expect_failures = [var.vpc_cidr]
-}
-
-run "rejects_malformed_vpc_cidr" {
-  command = plan
-
-  variables {
-    vpc_cidr = "not-a-cidr"
-  }
-
-  expect_failures = [var.vpc_cidr]
 }

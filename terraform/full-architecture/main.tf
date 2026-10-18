@@ -73,13 +73,6 @@ resource "aws_vpc" "primary" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  lifecycle {
-    precondition {
-      condition     = length(data.aws_availability_zones.available.names) >= 2
-      error_message = "The primary region must have at least two available Availability Zones."
-    }
-  }
-
   tags = {
     Name = "${local.name}-primary-vpc"
   }

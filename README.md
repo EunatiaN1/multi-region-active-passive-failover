@@ -20,20 +20,18 @@ to route traffic from a primary region to a standby region.
 The scenario controls are an educational visualization. They do **not** trigger
 or verify a real failover.
 
-The live AWS deployment hosts only this static explainer. It does not include
-the primary-region application, secondary-region maintenance origin,
+The existing live AWS deployment hosts only this static website. It does not
+include the primary-region application, secondary-region maintenance origin,
 CloudFront origin group, Route 53 failover records, health checks, or
 CloudWatch/SNS alerting shown in the explainer. A separate Terraform
 configuration is available in [`terraform/full-architecture/`](./terraform/full-architecture/).
-That code defines CloudFront origin failover using an AWS-generated hostname;
-it does not implement Route 53 DNS failover and has not been deployed or
-runtime-tested. Its resources are billable, and the S3 website endpoint is
-directly reachable over HTTP.
+The deployable variant uses CloudFront origin failover and an AWS-generated
+hostname; it does not implement Route 53 DNS failover. Its resources are
+billable, and the S3 website endpoint is directly reachable over HTTP.
 The full-architecture root includes plan-only Terraform tests with a mocked
 AWS provider. These test selected configuration properties without AWS
 credentials or creating resources; they do not replace deployment or runtime
-failover testing. See the [evidence register](./Portfolio/03-Finalisation-Phase/validation-evidence.md)
-for the verified and outstanding checks.
+failover testing.
 
 ## Run locally
 
@@ -55,9 +53,9 @@ Review the deployment steps, permissions, and cost considerations in the
 charges while deployed.
 
 The separate [full-architecture root](./terraform/full-architecture/) requires
-Terraform 1.6 or newer and includes eight mocked, plan-only Terraform test
-runs. They validate selected configuration properties without AWS credentials
-or creating resources; they do not replace an AWS plan, deployment, or runtime
+Terraform 1.6 or newer and includes three mocked, plan-only Terraform tests.
+They validate selected configuration properties without AWS credentials or
+creating resources; they do not replace an AWS plan, deployment, or runtime
 failover tests.
 
 ## Repository layout

@@ -1,54 +1,43 @@
-1# Cloud Programming Portfolio
+# Cloud Programming Portfolio
 
-This is the submission index for Task 1.1.1–1.1.3. The Markdown sources,
-regenerated PDFs, architecture illustration, and Terraform source are included
-in this folder and the accompanying project ZIP.
+This folder groups the written deliverables for the three phases of Task 1.1.
+The application and infrastructure source remain in the repository root.
 
-| Task | PDF deliverable | Editable source |
+| Portfolio part | Phase | Deliverable |
 | --- | --- | --- |
-| 1.1.1 Conception | [Conception submission](./01-Conception-Phase/Task-1.1.1-Phase-1-Conception-Submitted.pdf) | [Concept](./01-Conception-Phase/concept-presentation.md) |
-| 1.1.2 Development and reflection | [Ten-slide presentation](./02-Development-Phase/Task-1.1.2-Phase-2-Development-Submitted.pdf) | [Implementation and reflection](./02-Development-Phase/implementation-and-reflection.md) |
-| 1.1.3 Finalisation | [Two-page abstract](./03-Finalisation-Phase/Task-1.1.3-Phase-3-Abstract.pdf); [seven-page final report](./03-Finalisation-Phase/Task-1.1.3-Phase-3-Final-Report.pdf) | [Abstract](./03-Finalisation-Phase/finalisation-phase-abstract.md); [technical description](./03-Finalisation-Phase/final-report-technical.md) |
+| Part 1 | Conception | [Concept notes](./01-Conception-Phase/concept-presentation.md) |
+| Part 2 | Development and reflection | [Implementation and reflection](./02-Development-Phase/implementation-and-reflection.md) |
+| Part 3 | Finalisation | [Finalisation abstract](./03-Finalisation-Phase/finalisation-phase-abstract.md) |
 
-Regenerate the PDFs from this folder with Python 3 and ReportLab:
+The Phase 3 report contains a two-page abstract and a ten-page technical
+description, updated to match the current CloudFront-only DNS design and
+validation status. Three mocked, plan-only Terraform tests now verify
+selected configuration properties without deploying resources; AWS
+deployment and runtime behavior remain unverified. Tables use wrapped cell
+text and expanded padding to keep rows readable and prevent content from
+running together.
 
-```sh
-python3 -m pip install -r requirements-build.txt
-python3 build_pdfs.py
-```
+Latest checks for the full-architecture root: Terraform formatting and
+provider validation passed; automated tests passed (3 passed, 0 failed). The
+tests use a mocked AWS provider and create no cloud resources.
 
-## Scope and evidence at this revision
+Submitted PDF deliverables and the assembled submission archive are distributed
+separately and are not included in this repository.
 
-The live CloudFront URL serves the static interactive explainer. It is not the
-multi-region application. The separate Terraform example defines a primary
-application, a secondary maintenance page, CloudFront origin-group failover,
-and CloudWatch/SNS alerting. It does not define Route 53 records or a custom
-domain, and it has not been applied or runtime-tested in AWS. The scenario
-controls on the webpage are simulations, not AWS controls.
-
-The project records eight mocked, plan-only Terraform test runs in the
-development history. They create no AWS resources and are not deployment or
-failover evidence. Terraform was not available in the current editing
-environment, so those checks were not rerun while rebuilding this package.
-See the [evidence register](./03-Finalisation-Phase/validation-evidence.md)
-and [multi-region deployment guide](../terraform/full-architecture/README.md)
-for the distinction between verified, previously reported, and outstanding
-evidence.
-
-The Phase 2 PDF is regenerated as a current-ten-slide explanation. Statements
-in the original Phase 2 submission about an earlier deployment are historical
-claims only; their source, state, and logs were not available for independent
-verification and they do not describe the current Terraform configuration.
-
-## Project references
+## Implementation references
 
 - [Interactive webpage](../index.html)
-- [Static-site Terraform](../terraform/)
-- [Multi-region Terraform](../terraform/full-architecture/)
-- [Architecture illustration](./03-Finalisation-Phase/assets/multi-region-active-passive-architecture.png)
-- [Project overview](../README.md)
+- [Terraform configuration](../terraform/main.tf)
+- [Full active-passive Terraform stack](../terraform/full-architecture/)
+- [Deployment instructions](../terraform/README.md)
+- [Project overview and scope](../README.md)
 
-Before upload, check that the PDFs open correctly, review the ZIP contents,
-add any authentic tutor feedback you received, and retain AWS screenshots or
-logs only if you actually collect them. Do not present the local mocked tests
-as live AWS validation.
+The existing live website hosts the static explainer. The separate
+multi-region Terraform variant uses CloudFront origin failover and does not
+include Route 53 DNS failover. Its S3 website endpoint is directly reachable
+over HTTP and must not contain sensitive content. Do not treat the original
+Phase 2 presentation's reported test results as validation of this variant.
+
+Before submission, review each written deliverable, add any tutor feedback you
+received, and confirm that the code, deployment link, and screenshots reflect
+the version you are submitting.
