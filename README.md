@@ -68,4 +68,4 @@ failover tests.
 ## License
 
 No license has been specified. All rights are reserved unless the repository
-owner adds a licens in the future.
+owner adds a license in the future.
