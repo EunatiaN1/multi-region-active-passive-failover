@@ -64,7 +64,6 @@ failover tests.
 | --- | --- |
 | [`index.html`](./index.html) | Standalone interactive website |
 | [`terraform/`](./terraform/) | Terraform for static-site hosting and the separate full architecture |
-| [`Portfolio/`](./Portfolio/) | Written deliverables for the three assignment phases |
 
 ## License
 
